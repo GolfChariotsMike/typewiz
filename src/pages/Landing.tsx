@@ -494,8 +494,8 @@ export default function Landing() {
           <div className="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-sm">© 2026 TypeWiz. All rights reserved.</p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-gray-900 transition-colors">Terms of Service</a>
+              <a href="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
+              <a href="/terms" className="hover:text-gray-900 transition-colors">Terms of Service</a>
             </div>
           </div>
         </div>
