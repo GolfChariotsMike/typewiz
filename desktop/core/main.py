@@ -248,6 +248,15 @@ class TypeWizDaemon:
 
         except Exception as exc:
             emit({"event": "error", "message": f"Transcription failed: {exc}"})
+        finally:
+            # Always reset recorder so next recording starts clean
+            try:
+                self.recorder = AudioRecorder()
+            except Exception:
+                pass
+            # Ensure hotkey manager is not stuck in recording state
+            with self._lock:
+                self._recording = False
 
     def _hotkey_start(self): self.start_recording()
     def _hotkey_stop(self):  self.stop_recording()
