@@ -74,6 +74,7 @@ function handlePythonEvent(event) {
       pythonReady = true;
       restartCount = 0;
       trayModule && trayModule.setStatus("Ready");
+      overlayModule && overlayModule.showReady();
       console.log("[TypeWiz] Python core ready.");
       // Send saved config (hotkey + model) to Python on startup
       sendCommand({
