@@ -24,7 +24,7 @@ function openSettings(store, onSave) {
 
   settingsWindow = new BrowserWindow({
     width: 480,
-    height: 560,
+    height: 620,
     title: "TypeWiz Settings",
     resizable: false,
     minimizable: false,
