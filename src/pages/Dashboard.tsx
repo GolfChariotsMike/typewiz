@@ -238,7 +238,7 @@ export default function Dashboard() {
                         to="/dashboard?tab=upgrade"
                         className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
                       >
-                        Upgrade to Pro — $12/mo
+                        Upgrade to Pro — $19/mo
                       </Link>
                     </>
                   ) : (
@@ -569,7 +569,7 @@ export default function Dashboard() {
                       className="w-full bg-white hover:bg-gray-100 text-gray-900 py-3.5 rounded-xl font-semibold transition-all hover:scale-105"
                       onClick={() => alert('Stripe checkout coming soon!')}
                     >
-                      Upgrade to Pro — $12/mo
+                      Upgrade to Pro — $19/mo
                     </button>
                   </div>
                 </div>
