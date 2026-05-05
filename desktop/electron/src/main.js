@@ -237,6 +237,8 @@ function onSettingsSave(config) {
   // Push new config to Python (it re-registers the hotkey)
   sendCommand({
     cmd: "set_config",
+    mode: config.mode || "cloud",
+    api_key: config.apiKey || "",
     hotkey: config.hotkey,
     language: config.language || "en",
     model: config.model,
