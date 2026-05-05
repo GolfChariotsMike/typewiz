@@ -18,26 +18,29 @@ function useReveal(direction: 'up' | 'down' = 'up') {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setState('visible')
-        else setState(state => state === 'visible' ? 'exit' : 'hidden')
+        else setState(prev => prev === 'visible' ? 'exit' : 'hidden')
       },
-      { threshold: 0.1, rootMargin: '-40px 0px' }
+      // -160px bottom margin = element must be 160px inside viewport before animating in
+      { threshold: 0, rootMargin: '0px 0px -160px 0px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
-  const offset = direction === 'up' ? '48px' : '-48px'
+  // 80px travel — obvious but not ridiculous
+  const enterFrom = direction === 'up' ? '80px' : '-80px'
+  const exitTo    = direction === 'up' ? '-50px' : '50px'
 
   const style: React.CSSProperties = {
     opacity: state === 'visible' ? 1 : 0,
     transform: state === 'visible'
       ? 'translateY(0)'
       : state === 'exit'
-        ? `translateY(${direction === 'up' ? '-32px' : '32px'})`
-        : `translateY(${offset})`,
+        ? `translateY(${exitTo})`
+        : `translateY(${enterFrom})`,
     transition: state === 'visible'
-      ? 'opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1)'
-      : 'opacity 0.35s ease, transform 0.35s ease',
+      ? 'opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)'
+      : 'opacity 0.4s ease, transform 0.4s ease',
   }
 
   return { ref, style }
