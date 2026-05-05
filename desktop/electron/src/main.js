@@ -40,6 +40,7 @@ let pythonReady = false;
 let restartTimer = null;
 const MAX_RESTART_ATTEMPTS = 5;
 let restartCount = 0;
+let intentionalQuit = false;
 
 function getPythonCorePath() {
   if (app.isPackaged) {
@@ -166,6 +167,8 @@ function startPython() {
     console.warn(`[TypeWiz] Python exited (code=${code}, signal=${signal})`);
     pythonReady = false;
     pythonProcess = null;
+    // Don't restart or show error if we quit intentionally
+    if (intentionalQuit) return;
     if (restartCount < MAX_RESTART_ATTEMPTS) {
       restartCount++;
       const delay = Math.min(1000 * restartCount, 10000);
@@ -181,6 +184,7 @@ function startPython() {
 }
 
 function stopPython() {
+  intentionalQuit = true;
   if (restartTimer) { clearTimeout(restartTimer); restartTimer = null; }
   restartCount = MAX_RESTART_ATTEMPTS;
   if (pythonProcess) { pythonProcess.kill(); pythonProcess = null; }
