@@ -50,7 +50,11 @@ function getPythonCorePath() {
 
 function getPythonExecutable() {
   const corePath = getPythonCorePath();
-  const venvPython = path.join(corePath, "venv", "Scripts", "python.exe");
+  // Packaged: use compiled PyInstaller exe
+  const compiledExe = path.join(corePath, "typewiz-core.exe");
+  if (fs.existsSync(compiledExe)) return compiledExe;
+  // Dev: use venv or system Python
+  const venvPython = path.join(corePath, "..", "core", "venv", "Scripts", "python.exe");
   if (fs.existsSync(venvPython)) return venvPython;
   return process.platform === "win32" ? "python" : "python3";
 }
@@ -111,18 +115,21 @@ function startPython() {
   const corePath = getPythonCorePath();
   const mainScript = path.join(corePath, "main.py");
 
-  if (!fs.existsSync(mainScript)) {
+  const compiledExe = path.join(corePath, "typewiz-core.exe");
+  if (!fs.existsSync(compiledExe) && !fs.existsSync(mainScript)) {
     dialog.showErrorBox(
       "TypeWiz — Setup Required",
-      `Python core not found at:\n${mainScript}\n\nPlease run install.bat first.`
+      `TypeWiz core not found at:\n${corePath}\n\nPlease reinstall TypeWiz.`
     );
     app.quit();
     return;
   }
 
-  console.log(`[TypeWiz] Starting Python: ${pythonExe} ${mainScript}`);
+  const isCompiled = pythonExe.endsWith("typewiz-core.exe");
+  const args = isCompiled ? [] : [mainScript];
+  console.log(`[TypeWiz] Starting core: ${pythonExe}`, args);
 
-  pythonProcess = spawn(pythonExe, [mainScript], {
+  pythonProcess = spawn(pythonExe, args, {
     cwd: corePath,
     stdio: ["pipe", "pipe", "pipe"],
     env: { ...process.env },
