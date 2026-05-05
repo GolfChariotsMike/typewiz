@@ -45,6 +45,8 @@ function openSettings(store, onSave) {
   settingsWindow.once("ready-to-show", () => {
     // Send current config to the renderer
     const config = {
+      mode: store.get("mode", "cloud"),
+      apiKey: store.get("apiKey", ""),
       hotkey: store.get("hotkey", "ctrl+windows"),
       language: store.get("language", "en"),
       model: store.get("model", "small"),
@@ -69,6 +71,8 @@ function openSettings(store, onSave) {
 function registerIpcHandlers(store, onSave) {
   // Save settings from renderer
   ipcMain.on("save-settings", (_event, config) => {
+    store.set("mode", config.mode || "cloud");
+    store.set("apiKey", config.apiKey || "");
     store.set("hotkey", config.hotkey);
     store.set("language", config.language || "en");
     store.set("model", config.model);
@@ -99,6 +103,8 @@ function registerIpcHandlers(store, onSave) {
 
   // Renderer requests current config
   ipcMain.handle("get-config", () => ({
+    mode: store.get("mode", "cloud"),
+    apiKey: store.get("apiKey", ""),
     hotkey: store.get("hotkey", "ctrl+windows"),
     language: store.get("language", "en"),
     model: store.get("model", "small"),
