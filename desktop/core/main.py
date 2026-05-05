@@ -220,7 +220,16 @@ class TypeWizDaemon:
                 emit({"event": "transcription", "text": ""})
                 return
 
-            segments, _info = self.model.transcribe(audio_np, beam_size=5)
+            segments, _info = self.model.transcribe(
+                audio_np,
+                language="en",            # force English, no language detection
+                beam_size=5,
+                best_of=5,
+                condition_on_previous_text=False,  # no hallucinated context
+                no_speech_threshold=0.6,           # reject if probably silence
+                log_prob_threshold=-1.0,           # reject low-confidence output
+                compression_ratio_threshold=2.4,
+            )
             text = " ".join(seg.text for seg in segments).strip()
             emit({"event": "transcription", "text": text})
             if text:
