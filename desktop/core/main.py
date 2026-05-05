@@ -2,57 +2,68 @@
 TypeWiz Core Daemon
 ===================
 Communicates with Electron via stdin/stdout (newline-delimited JSON).
-Hold-to-talk: uses keyboard hooks for press + Win32 polling for release.
+
+Hotkey detection: pure Win32 GetAsyncKeyState polling every 30ms.
+No keyboard hooks, no admin required, rock solid.
+
+Text injection: always via clipboard paste (Ctrl+V). Most reliable method.
 """
 
-import io, sys, json, time, threading, ctypes
+import io, sys, json, time, threading, ctypes, ctypes.wintypes
 import model_manager
 model_manager.configure_hf_cache()
 
 from audio import AudioRecorder
-import pyperclip, pyautogui, keyboard
+import pyperclip
+import pyautogui
 
 # ---------------------------------------------------------------------------
-# Win32 key state — poll-based release detection
-# Windows eats the Win key keyup event so we must poll GetAsyncKeyState.
+# Win32 key state
 # ---------------------------------------------------------------------------
 
 VK_MAP = {
-    "ctrl":      [0x11, 0xA2, 0xA3],
-    "alt":       [0x12, 0xA4, 0xA5],
+    "ctrl":      [0x11, 0xA2, 0xA3],   # VK_CONTROL, L, R
+    "alt":       [0x12, 0xA4, 0xA5],   # VK_MENU, L, R
     "shift":     [0x10, 0xA0, 0xA1],
-    "windows":   [0x5B, 0x5C],
+    "windows":   [0x5B, 0x5C],         # VK_LWIN, VK_RWIN
     "right alt": [0xA5],
     "space":     [0x20],
+    "f13":       [0x7C],
 }
 
 def is_key_held(key_name: str) -> bool:
-    vks = VK_MAP.get(key_name.lower(), [])
-    for vk in vks:
+    for vk in VK_MAP.get(key_name.lower(), []):
         if ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000:
             return True
     return False
 
-def any_trigger_key_released(keys: list) -> bool:
-    """Returns True if ANY of the hotkey keys is no longer held."""
-    return any(not is_key_held(k) for k in keys)
-
 
 # ---------------------------------------------------------------------------
-# Text injection
+# Text injection — always clipboard paste, most reliable on Windows
 # ---------------------------------------------------------------------------
 
 def inject_text(text: str):
     text = text.strip()
     if not text:
         return
-    if len(text) > 50 or any(ord(c) > 127 for c in text):
+    try:
+        # Save existing clipboard content
+        try:
+            old = pyperclip.paste()
+        except Exception:
+            old = ""
         pyperclip.copy(text)
-        time.sleep(0.05)
+        time.sleep(0.08)
         pyautogui.hotkey("ctrl", "v")
-    else:
-        time.sleep(0.05)
-        pyautogui.typewrite(text, interval=0.008)
+        time.sleep(0.12)
+        # Restore clipboard
+        try:
+            if old:
+                pyperclip.copy(old)
+        except Exception:
+            pass
+    except Exception as exc:
+        emit({"event": "error", "message": f"Text inject failed: {exc}"})
 
 
 # ---------------------------------------------------------------------------
@@ -87,97 +98,66 @@ def parse_hotkey(s: str) -> list:
         "ctrl": "ctrl", "control": "ctrl",
         "alt": "alt", "shift": "shift", "space": "space",
         "ralt": "right alt", "right alt": "right alt",
+        "f13": "f13",
     }
     return [mapping.get(p.strip().lower(), p.strip().lower()) for p in s.split("+")]
 
 
 # ---------------------------------------------------------------------------
-# Hotkey manager
-# Strategy:
-#   1. keyboard.on_press detects when all hotkey keys are pressed
-#   2. A polling thread then waits MIN_HOLD_MS before checking for release
-#   3. Polls every POLL_MS until ANY key is released
-#   4. If Windows key is in combo, treat Ctrl release as the stop signal
-#      (Win key state is unreliable via GetAsyncKeyState on some machines)
+# Hotkey manager — pure polling, no hooks, no admin needed
+# Polls GetAsyncKeyState every 30ms. Detects press and release reliably.
 # ---------------------------------------------------------------------------
 
-MIN_HOLD_MS = 250    # ignore releases before this (debounce / accidental taps)
-POLL_MS     = 50     # how often to check key state
-MAX_HOLD_S  = 120    # safety cutoff
+POLL_INTERVAL = 0.03   # 30ms — fast enough to feel instant
+MIN_HOLD_S    = 0.15   # ignore releases within 150ms (debounce)
+MAX_HOLD_S    = 120    # safety cutoff
 
 class HotkeyManager:
     def __init__(self, on_start, on_stop):
-        self._on_start = on_start
-        self._on_stop  = on_stop
-        self._keys     = []
-        self._recording = False
+        self._on_start  = on_start
+        self._on_stop   = on_stop
+        self._keys      = []
+        self._active    = False
+        self._running   = False
+        self._thread    = None
         self._lock      = threading.Lock()
-        self._hooks     = []
-        self._stop_poll = threading.Event()
 
     def set_hotkey(self, hotkey_str: str):
-        self._unregister()
         self._keys = parse_hotkey(hotkey_str)
-        self._recording = False
-        self._register()
-        emit({"event": "status", "message": f"Hotkey set: {hotkey_str} → keys: {self._keys}"})
+        emit({"event": "status", "message": f"Hotkey set: {hotkey_str} keys={self._keys}"})
 
-    def _trigger_keys_for_release(self) -> list:
-        """
-        Keys to watch for release.
-        If Windows key is in the combo, watch Ctrl instead —
-        GetAsyncKeyState for Win is unreliable on many machines.
-        """
-        if "windows" in self._keys:
-            # Use Ctrl as the reliable release signal
-            return ["ctrl"]
-        return self._keys
+    def start(self):
+        self._running = True
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True)
+        self._thread.start()
 
-    def _on_key_down(self, event):
-        with self._lock:
-            if self._recording:
-                return
-            # Check all configured keys are held
-            if all(is_key_held(k) for k in self._keys):
-                self._recording = True
-                threading.Thread(target=self._on_start, daemon=True).start()
-                self._stop_poll.clear()
-                threading.Thread(target=self._poll_release, daemon=True).start()
+    def stop(self):
+        self._running = False
 
-    def _poll_release(self):
-        start = time.time()
-        watch_keys = self._trigger_keys_for_release()
+    def _all_held(self) -> bool:
+        return all(is_key_held(k) for k in self._keys)
 
-        # Wait minimum hold time before watching for release
-        time.sleep(MIN_HOLD_MS / 1000.0)
-
-        deadline = start + MAX_HOLD_S
-        while not self._stop_poll.is_set() and time.time() < deadline:
-            if any_trigger_key_released(watch_keys):
-                with self._lock:
-                    if self._recording:
-                        self._recording = False
-                        threading.Thread(target=self._on_stop, daemon=True).start()
-                break
-            time.sleep(POLL_MS / 1000.0)
-        else:
-            # Safety cutoff
+    def _poll_loop(self):
+        hold_start = None
+        while self._running:
+            held = self._all_held()
             with self._lock:
-                if self._recording:
-                    self._recording = False
+                if held and not self._active:
+                    self._active = True
+                    hold_start = time.time()
+                    threading.Thread(target=self._on_start, daemon=True).start()
+                elif not held and self._active:
+                    duration = time.time() - hold_start if hold_start else 0
+                    if duration >= MIN_HOLD_S:
+                        self._active = False
+                        threading.Thread(target=self._on_stop, daemon=True).start()
+                    elif not held:
+                        # Released too fast — cancel without transcribing
+                        self._active = False
+                elif self._active and hold_start and (time.time() - hold_start) > MAX_HOLD_S:
+                    self._active = False
                     threading.Thread(target=self._on_stop, daemon=True).start()
-
-    def _register(self):
-        self._hooks = [keyboard.on_press(self._on_key_down)]
-
-    def _unregister(self):
-        self._stop_poll.set()
-        for h in self._hooks:
-            try:
-                keyboard.unhook(h)
-            except Exception:
-                pass
-        self._hooks = []
+            time.sleep(POLL_INTERVAL)
 
 
 # ---------------------------------------------------------------------------
@@ -186,12 +166,12 @@ class HotkeyManager:
 
 class TypeWizDaemon:
     def __init__(self):
-        self.model_size = "base"
-        self.model      = None
-        self.recorder   = AudioRecorder()
-        self._recording = False
-        self._lock      = threading.Lock()
-        self.hotkey_mgr = HotkeyManager(
+        self.model_size  = "base"
+        self.model       = None
+        self.recorder    = AudioRecorder()
+        self._recording  = False
+        self._lock       = threading.Lock()
+        self.hotkey_mgr  = HotkeyManager(
             on_start=self._hotkey_start,
             on_stop=self._hotkey_stop,
         )
@@ -234,9 +214,9 @@ class TypeWizDaemon:
                 audio_np = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32767.0
 
             duration_s = len(audio_np) / 16000
-            emit({"event": "status", "message": f"Audio captured: {duration_s:.1f}s"})
+            emit({"event": "status", "message": f"Captured {duration_s:.1f}s of audio"})
 
-            if audio_np.size == 0 or duration_s < 0.3:
+            if audio_np.size == 0 or duration_s < 0.2:
                 emit({"event": "transcription", "text": ""})
                 return
 
@@ -249,12 +229,11 @@ class TypeWizDaemon:
         except Exception as exc:
             emit({"event": "error", "message": f"Transcription failed: {exc}"})
         finally:
-            # Always reset recorder so next recording starts clean
+            # Always reset for next use
             try:
                 self.recorder = AudioRecorder()
             except Exception:
                 pass
-            # Ensure hotkey manager is not stuck in recording state
             with self._lock:
                 self._recording = False
 
@@ -271,6 +250,8 @@ class TypeWizDaemon:
     def run(self):
         threading.Thread(target=self.load_model, daemon=True).start()
         self.hotkey_mgr.set_hotkey("ctrl+windows")
+        self.hotkey_mgr.start()
+
         while True:
             cmd = read_command()
             if cmd is None:
