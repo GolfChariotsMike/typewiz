@@ -3,6 +3,8 @@ import { useAuth } from './context/AuthContext'
 
 // Pages
 import Landing from './pages/Landing'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
@@ -33,6 +35,8 @@ export default function App() {
       <Route path="/dashboard" element={
         <ProtectedRoute><Dashboard /></ProtectedRoute>
       } />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
