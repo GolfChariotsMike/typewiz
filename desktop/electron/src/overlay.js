@@ -28,7 +28,7 @@ const HTML = `<!DOCTYPE html>
     background: rgba(20, 20, 28, 0.80);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.10);
-    box-shadow: 0 2px 16px rgba(0,0,0,0.40);
+    box-shadow: none;
     -webkit-app-region: drag;
     cursor: grab;
     white-space: nowrap;
