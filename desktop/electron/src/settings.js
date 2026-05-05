@@ -47,7 +47,7 @@ function openSettings(store, onSave) {
     const config = {
       hotkey: store.get("hotkey", "ctrl+windows"),
       language: store.get("language", "en"),
-      model: store.get("model", "base"),
+      model: store.get("model", "small"),
       licenseKey: store.get("licenseKey", ""),
     };
     settingsWindow.webContents.send("load-config", config);
@@ -101,7 +101,7 @@ function registerIpcHandlers(store, onSave) {
   ipcMain.handle("get-config", () => ({
     hotkey: store.get("hotkey", "ctrl+windows"),
     language: store.get("language", "en"),
-    model: store.get("model", "base"),
+    model: store.get("model", "small"),
     licenseKey: store.get("licenseKey", ""),
   }));
 }
