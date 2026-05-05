@@ -365,7 +365,7 @@ export default function Dashboard() {
                       </ul>
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 mb-2">Pro — $12/mo</div>
+                      <div className="font-semibold text-gray-900 mb-2">Pro — $19/mo</div>
                       <ul className="space-y-1.5 text-gray-700">
                         <li>Unlimited transcriptions</li>
                         <li>Local AI model — fully offline</li>
@@ -537,14 +537,14 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="max-w-md">
-                  <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 relative">
+                  <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm relative">
                     <div className="mb-6">
-                      <div className="text-2xl font-black text-white mb-1">Pro Plan</div>
+                      <div className="text-2xl font-black text-gray-900 mb-1">Pro Plan</div>
                       <div className="flex items-end gap-1">
-                        <span className="text-4xl font-black text-white">$12</span>
+                        <span className="text-4xl font-black text-gray-900">$19</span>
                         <span className="text-gray-400 mb-1">/month</span>
                       </div>
-                      <p className="text-gray-400 text-sm mt-1">Cancel anytime</p>
+                      <p className="text-gray-500 text-sm mt-1">Or <a href="https://buy.stripe.com/aFaaEW9aafVr1HH9DTgQE0a" className="underline hover:text-gray-700">$190/year</a> — 2 months free · Cancel anytime</p>
                     </div>
 
                     <ul className="space-y-3 mb-8">
@@ -558,19 +558,19 @@ export default function Dashboard() {
                         '50+ languages',
                         'Priority support',
                       ].map(item => (
-                        <li key={item} className="flex items-center gap-3 text-sm text-white">
+                        <li key={item} className="flex items-center gap-3 text-sm text-gray-700">
                           <CheckCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
                     </ul>
 
-                    <button
-                      className="w-full bg-white hover:bg-gray-100 text-gray-900 py-3.5 rounded-xl font-semibold transition-all hover:scale-105"
-                      onClick={() => alert('Stripe checkout coming soon!')}
+                    <a
+                      href="https://buy.stripe.com/5kQ3cu8667oVeut3fvgQE09"
+                      className="block w-full text-center bg-gray-900 hover:bg-gray-700 text-white py-3.5 rounded-xl font-semibold transition-all hover:scale-105"
                     >
                       Upgrade to Pro — $19/mo
-                    </button>
+                    </a>
                   </div>
                 </div>
               )}
