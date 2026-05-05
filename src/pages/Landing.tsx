@@ -130,7 +130,9 @@ function HeroMockup() {
       {/* Hotkey badge */}
       <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-xl">
         <span className="text-xs text-gray-500">Hold</span>
-        <kbd className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded font-mono border border-gray-200">Right Alt</kbd>
+        <kbd className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded font-mono border border-gray-200">Ctrl</kbd>
+        <span className="text-xs text-gray-500">+</span>
+        <kbd className="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded font-mono border border-gray-200">⊞ Win</kbd>
         <span className="text-xs text-gray-500">to dictate</span>
       </div>
     </div>
@@ -189,7 +191,7 @@ const testimonials = [
 ]
 
 const steps = [
-  { num: '01', icon: <Keyboard className="w-7 h-7" />, title: 'Hold your hotkey', desc: 'Press and hold Right Alt (or your custom key). TypeWiz starts listening immediately.' },
+  { num: '01', icon: <Keyboard className="w-7 h-7" />, title: 'Hold your hotkey', desc: 'Hold Ctrl + Win (or your custom combo). TypeWiz starts listening immediately.' },
   { num: '02', icon: <Mic className="w-7 h-7" />, title: 'Say anything', desc: 'Speak naturally. TypeWiz transcribes using local AI — no cloud, no delay, nothing leaves your machine.' },
   { num: '03', icon: <CheckCircle className="w-7 h-7" />, title: 'Text appears instantly', desc: 'Release the key. Your words appear at your cursor, exactly where you need them.' },
 ]
@@ -220,7 +222,7 @@ export default function Landing() {
             </h1>
 
             <p className="text-lg text-gray-500 leading-relaxed mb-10 max-w-lg">
-              Hold a key, say what you want, watch it appear. TypeWiz turns your voice into text instantly — anywhere on your screen, with no internet required.
+              Hold Ctrl + Win, say what you want, watch it appear. TypeWiz turns your voice into text instantly — anywhere on your screen, with no internet required.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
