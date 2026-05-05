@@ -5,8 +5,8 @@ Runs as a long-lived subprocess managed by the Electron shell.
 Communicates with Electron via stdin/stdout using newline-delimited JSON.
 
 Inbound commands (from Electron → stdin):
-  {"cmd": "start_recording"}       -- manual trigger (unused when hotkey active)
-  {"cmd": "stop_recording"}        -- manual stop
+  {"cmd": "start_recording"}
+  {"cmd": "stop_recording"}
   {"cmd": "set_config", "hotkey": "ctrl+windows", "model": "base"}
   {"cmd": "ping"}
 
@@ -24,8 +24,8 @@ import json
 import time
 import threading
 import os
+import ctypes
 
-# Configure HuggingFace cache before any faster-whisper imports
 import model_manager
 model_manager.configure_hf_cache()
 
@@ -33,6 +33,30 @@ from audio import AudioRecorder
 import pyperclip
 import pyautogui
 import keyboard
+
+# ---------------------------------------------------------------------------
+# Win32 key state polling
+# Note: The Windows key release event is intercepted by the OS and never
+# delivered to keyboard hooks. We use GetAsyncKeyState polling instead.
+# ---------------------------------------------------------------------------
+
+# Virtual key codes
+VK_MAP = {
+    "ctrl":      [0x11, 0xA2, 0xA3],   # VK_CONTROL, VK_LCONTROL, VK_RCONTROL
+    "alt":       [0x12, 0xA4, 0xA5],   # VK_MENU, VK_LMENU, VK_RMENU
+    "shift":     [0x10, 0xA0, 0xA1],   # VK_SHIFT, VK_LSHIFT, VK_RSHIFT
+    "windows":   [0x5B, 0x5C],         # VK_LWIN, VK_RWIN
+    "right alt": [0xA5],               # VK_RMENU
+    "space":     [0x20],
+}
+
+def is_key_held(key_name: str) -> bool:
+    """Returns True if any VK for this key is currently held."""
+    vks = VK_MAP.get(key_name.lower(), [])
+    for vk in vks:
+        if ctypes.windll.user32.GetAsyncKeyState(vk) & 0x8000:
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -80,21 +104,17 @@ def read_command() -> dict | None:
 # Hotkey parsing
 # ---------------------------------------------------------------------------
 
-def parse_hotkey(hotkey_str: str) -> list[str]:
-    """
-    Parse a hotkey string like "ctrl+windows" into a list of key names
-    that the `keyboard` library understands.
-    """
+def parse_hotkey(hotkey_str: str) -> list:
     mapping = {
         "windows": "windows",
-        "win": "windows",
-        "super": "windows",
-        "ctrl": "ctrl",
+        "win":     "windows",
+        "super":   "windows",
+        "ctrl":    "ctrl",
         "control": "ctrl",
-        "alt": "alt",
-        "shift": "shift",
-        "space": "space",
-        "ralt": "right alt",
+        "alt":     "alt",
+        "shift":   "shift",
+        "space":   "space",
+        "ralt":    "right alt",
         "right alt": "right alt",
     }
     parts = [p.strip().lower() for p in hotkey_str.split("+")]
@@ -103,58 +123,61 @@ def parse_hotkey(hotkey_str: str) -> list[str]:
 
 # ---------------------------------------------------------------------------
 # Hotkey manager — hold-to-talk
+# Uses keyboard hooks for press detection + GetAsyncKeyState polling for release.
+# The Windows key keyup event is eaten by the OS, so we must poll.
 # ---------------------------------------------------------------------------
 
 class HotkeyManager:
-    """
-    Registers a hold-to-talk hotkey using the `keyboard` library.
-    Both configured keys must be held simultaneously to record.
-    Recording stops when either key is released.
-    """
-
     def __init__(self, on_start, on_stop):
         self._on_start = on_start
         self._on_stop = on_stop
         self._keys = []
-        self._held = set()
         self._recording = False
-        self._hooks = []
         self._lock = threading.Lock()
+        self._hooks = []
+        self._poll_thread = None
+        self._stop_poll = threading.Event()
 
     def set_hotkey(self, hotkey_str: str):
         self._unregister()
         self._keys = parse_hotkey(hotkey_str)
-        self._held = set()
         self._recording = False
         self._register()
         emit({"event": "status", "message": f"Hotkey set: {hotkey_str}"})
 
     def _all_held(self) -> bool:
-        return all(k in self._held for k in self._keys)
+        return all(is_key_held(k) for k in self._keys)
 
     def _on_key_down(self, event):
-        key = event.name.lower() if event.name else ""
         with self._lock:
-            self._held.add(key)
-            if self._all_held() and not self._recording:
+            if not self._recording and self._all_held():
                 self._recording = True
                 threading.Thread(target=self._on_start, daemon=True).start()
+                # Start polling thread to detect release
+                self._stop_poll.clear()
+                self._poll_thread = threading.Thread(
+                    target=self._poll_release, daemon=True
+                )
+                self._poll_thread.start()
 
-    def _on_key_up(self, event):
-        key = event.name.lower() if event.name else ""
-        with self._lock:
-            self._held.discard(key)
-            if self._recording and not self._all_held():
-                self._recording = False
-                threading.Thread(target=self._on_stop, daemon=True).start()
+    def _poll_release(self):
+        """Poll every 50ms — trigger stop when any hotkey key is released."""
+        MAX_DURATION = 60  # safety: stop after 60 seconds no matter what
+        start = time.time()
+        while not self._stop_poll.is_set():
+            time.sleep(0.05)
+            if not self._all_held() or (time.time() - start) > MAX_DURATION:
+                with self._lock:
+                    if self._recording:
+                        self._recording = False
+                        threading.Thread(target=self._on_stop, daemon=True).start()
+                break
 
     def _register(self):
-        self._hooks = [
-            keyboard.on_press(self._on_key_down),
-            keyboard.on_release(self._on_key_up),
-        ]
+        self._hooks = [keyboard.on_press(self._on_key_down)]
 
     def _unregister(self):
+        self._stop_poll.set()
         for hook in self._hooks:
             try:
                 keyboard.unhook(hook)
@@ -232,14 +255,12 @@ class TypeWizDaemon:
             emit({"event": "error", "message": f"Transcription failed: {exc}"})
 
     def _hotkey_start(self):
-        """Called by HotkeyManager when hold begins."""
         self.start_recording()
 
     def _hotkey_stop(self):
-        """Called by HotkeyManager when hold ends."""
         self.stop_recording()
 
-    def set_config(self, model: str = None, hotkey: str = None, **_kwargs):
+    def set_config(self, model=None, hotkey=None, **_kwargs):
         if hotkey:
             self.hotkey_mgr.set_hotkey(hotkey)
         if model and model != self.model_size:
@@ -247,11 +268,8 @@ class TypeWizDaemon:
             threading.Thread(target=self.load_model, daemon=True).start()
 
     def run(self):
-        # Load model + register default hotkey on startup
         loader = threading.Thread(target=self.load_model, daemon=True)
         loader.start()
-
-        # Register default hotkey (Ctrl + Windows)
         self.hotkey_mgr.set_hotkey("ctrl+windows")
 
         while True:
@@ -260,9 +278,7 @@ class TypeWizDaemon:
                 break
             if not cmd:
                 continue
-
             command = cmd.get("cmd")
-
             if command == "start_recording":
                 threading.Thread(target=self.start_recording, daemon=True).start()
             elif command == "stop_recording":
@@ -282,9 +298,7 @@ class TypeWizDaemon:
 if __name__ == "__main__":
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(line_buffering=True)
-
     pyautogui.FAILSAFE = False
     pyautogui.PAUSE = 0
-
     daemon = TypeWizDaemon()
     daemon.run()
