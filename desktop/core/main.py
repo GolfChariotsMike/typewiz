@@ -167,6 +167,7 @@ class HotkeyManager:
 class TypeWizDaemon:
     def __init__(self):
         self.model_size  = "base"
+        self.language    = "en"
         self.model       = None
         self.recorder    = AudioRecorder()
         self._recording  = False
@@ -222,7 +223,7 @@ class TypeWizDaemon:
 
             segments, _info = self.model.transcribe(
                 audio_np,
-                language="en",            # force English, no language detection
+                language=self.language,    # user-configured language (None = auto-detect)
                 beam_size=5,
                 best_of=5,
                 condition_on_previous_text=False,  # no hallucinated context
@@ -249,9 +250,11 @@ class TypeWizDaemon:
     def _hotkey_start(self): self.start_recording()
     def _hotkey_stop(self):  self.stop_recording()
 
-    def set_config(self, model=None, hotkey=None, **_):
+    def set_config(self, model=None, hotkey=None, language=None, **_):
         if hotkey:
             self.hotkey_mgr.set_hotkey(hotkey)
+        if language:
+            self.language = language if language != "auto" else None
         if model and model != self.model_size:
             self.model_size = model
             threading.Thread(target=self.load_model, daemon=True).start()
