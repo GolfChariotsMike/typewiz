@@ -166,7 +166,7 @@ class HotkeyManager:
 
 class TypeWizDaemon:
     def __init__(self):
-        self.model_size  = "base"
+        self.model_size  = "small"
         self.language    = "en"
         self.model       = None
         self.recorder    = AudioRecorder()
@@ -217,7 +217,7 @@ class TypeWizDaemon:
             duration_s = len(audio_np) / 16000
             emit({"event": "status", "message": f"Captured {duration_s:.1f}s of audio"})
 
-            if audio_np.size == 0 or duration_s < 0.2:
+            if audio_np.size == 0 or duration_s < 0.08:
                 emit({"event": "transcription", "text": ""})
                 return
 
@@ -227,8 +227,8 @@ class TypeWizDaemon:
                 beam_size=5,
                 best_of=5,
                 condition_on_previous_text=False,  # no hallucinated context
-                no_speech_threshold=0.6,           # reject if probably silence
-                log_prob_threshold=-1.0,           # reject low-confidence output
+                no_speech_threshold=0.45,          # reject if probably silence
+                log_prob_threshold=-1.2,           # reject low-confidence output
                 compression_ratio_threshold=2.4,
             )
             text = " ".join(seg.text for seg in segments).strip()
