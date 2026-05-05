@@ -65,6 +65,14 @@ class AudioRecorder:
         # Convert float32 [-1, 1] to int16 PCM for WAV file
         pcm_int16 = (audio_data * 32767).astype(np.int16)
 
+        # Prepend 150ms of silence to compensate for mic stream warmup.
+        # The first ~100ms of audio is often missed as the stream initialises,
+        # which causes Whisper to miss the first word. Padding with silence
+        # gives Whisper correct timing context without affecting transcription.
+        pad_samples = int(self.sample_rate * 0.15)
+        silence_pad = np.zeros(pad_samples, dtype=np.int16)
+        pcm_int16 = np.concatenate([silence_pad, pcm_int16.flatten()])
+
         return _numpy_to_wav(pcm_int16, self.sample_rate, self.channels)
 
 
