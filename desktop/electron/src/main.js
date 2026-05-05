@@ -237,6 +237,7 @@ function onSettingsSave(config) {
   sendCommand({
     cmd: "set_config",
     hotkey: config.hotkey,
+    language: config.language || "en",
     model: config.model,
   });
 }
