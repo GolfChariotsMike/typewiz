@@ -45,7 +45,8 @@ function openSettings(store, onSave) {
   settingsWindow.once("ready-to-show", () => {
     // Send current config to the renderer
     const config = {
-      hotkey: store.get("hotkey", "RAlt"),
+      hotkey: store.get("hotkey", "ctrl+windows"),
+      language: store.get("language", "en"),
       model: store.get("model", "base"),
       licenseKey: store.get("licenseKey", ""),
     };
@@ -69,6 +70,7 @@ function registerIpcHandlers(store, onSave) {
   // Save settings from renderer
   ipcMain.on("save-settings", (_event, config) => {
     store.set("hotkey", config.hotkey);
+    store.set("language", config.language || "en");
     store.set("model", config.model);
     store.set("licenseKey", config.licenseKey);
     if (typeof onSave === "function") onSave(config);
@@ -97,7 +99,8 @@ function registerIpcHandlers(store, onSave) {
 
   // Renderer requests current config
   ipcMain.handle("get-config", () => ({
-    hotkey: store.get("hotkey", "RAlt"),
+    hotkey: store.get("hotkey", "ctrl+windows"),
+    language: store.get("language", "en"),
     model: store.get("model", "base"),
     licenseKey: store.get("licenseKey", ""),
   }));
