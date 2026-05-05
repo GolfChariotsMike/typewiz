@@ -6,159 +6,62 @@
   <title>TypeWiz Settings</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0f0f17;
-      --surface: #1a1a2e;
-      --border: #2a2a45;
-      --accent: #8b5cf6;
-      --accent-hover: #7c3aed;
-      --text: #e2e8f0;
-      --muted: #6b7280;
-      --input-bg: #111827;
-      --radius: 8px;
+      --bg: #0f0f17; --surface: #1a1a2e; --border: #2a2a45;
+      --accent: #8b5cf6; --accent-hover: #7c3aed;
+      --text: #e2e8f0; --muted: #6b7280; --input-bg: #111827; --radius: 8px;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 14px;
-      padding: 28px 32px 24px;
-      line-height: 1.5;
-      user-select: none;
+      font-size: 14px; padding: 28px 32px 24px; line-height: 1.5; user-select: none;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .logo {
-      font-size: 26px;
-    }
-
-    .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #a78bfa;
-    }
-
-    .header .tagline {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .section {
-      margin-bottom: 20px;
-    }
-
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .logo { font-size: 26px; }
+    .header h1 { font-size: 20px; font-weight: 600; color: #a78bfa; }
+    .header .tagline { font-size: 12px; color: var(--muted); }
+    .section { margin-bottom: 20px; }
     label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 6px;
+      display: block; font-size: 12px; font-weight: 500; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
     }
-
-    select, input[type="text"], input[type="password"] {
-      width: 100%;
-      padding: 9px 12px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.15s;
-      -webkit-appearance: none;
+    select, input[type="text"] {
+      width: 100%; padding: 9px 12px; background: var(--input-bg);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-size: 14px; outline: none;
+      transition: border-color 0.15s; -webkit-appearance: none;
     }
-
-    select:focus, input:focus {
-      border-color: var(--accent);
-    }
-
-    select option {
-      background: var(--input-bg);
-    }
-
-    .hint {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 5px;
-    }
-
-    .license-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .license-row input {
-      flex: 1;
-    }
-
+    select:focus, input:focus { border-color: var(--accent); }
+    select option { background: var(--input-bg); }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .license-row { display: flex; gap: 8px; }
+    .license-row input { flex: 1; }
     .btn {
-      padding: 9px 18px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: background 0.15s, opacity 0.15s;
+      padding: 9px 18px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; cursor: pointer; border: none; transition: background 0.15s, opacity 0.15s;
     }
-
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--border); }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-
+    .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { background: var(--accent-hover); }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 20px 0;
-    }
-
-    .actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 24px;
-    }
-
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
     .link-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 13px;
-      cursor: pointer;
-      text-decoration: underline;
-      padding: 0;
+      background: none; border: none; color: var(--accent); font-size: 13px;
+      cursor: pointer; text-decoration: underline; padding: 0;
     }
-
-    .status-msg {
-      font-size: 12px;
-      color: #6ee7b7;
-      min-height: 18px;
-      margin-top: 8px;
+    .status-msg { font-size: 12px; color: #6ee7b7; min-height: 18px; margin-top: 8px; }
+    .hotkey-preview {
+      display: inline-flex; gap: 4px; margin-top: 8px; flex-wrap: wrap;
+    }
+    .key-badge {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 8px; font-size: 12px;
+      font-family: monospace; color: var(--text);
     }
   </style>
 </head>
 <body>
-
   <div class="header">
     <div class="logo">🎙️</div>
     <div>
@@ -169,14 +72,16 @@
 
   <!-- Hotkey -->
   <div class="section">
-    <label for="hotkey">Activation Hotkey</label>
+    <label for="hotkey">Hold-to-Record Hotkey</label>
     <select id="hotkey">
-      <option value="RAlt">Right Alt (default)</option>
-      <option value="CmdOrCtrl+Space">Ctrl + Space</option>
-      <option value="CmdOrCtrl+Super">Ctrl + Win</option>
-      <option value="F13">F13 (programmable key)</option>
+      <option value="ctrl+windows">Ctrl + Win (default)</option>
+      <option value="ctrl+alt">Ctrl + Alt</option>
+      <option value="right alt">Right Alt</option>
+      <option value="ctrl+shift+space">Ctrl + Shift + Space</option>
+      <option value="f13">F13 (programmable key)</option>
     </select>
-    <div class="hint">Hold this key to record, release to transcribe.</div>
+    <div class="hint">Hold both keys to record. Release either key to transcribe.</div>
+    <div class="hotkey-preview" id="hotkeyPreview"></div>
   </div>
 
   <!-- Model -->
@@ -208,31 +113,43 @@
   </div>
 
   <script>
-    // Wait for the context bridge to be available
     const tw = window.typewiz;
 
-    // Load saved config into form fields
-    async function loadConfig() {
-      let config;
-      try {
-        config = await tw.getConfig();
-      } catch (e) {
-        // Fallback if IPC not ready
-        config = { hotkey: "RAlt", model: "base", licenseKey: "" };
-      }
-      document.getElementById("hotkey").value = config.hotkey || "RAlt";
-      document.getElementById("model").value = config.model || "base";
-      document.getElementById("licenseKey").value = config.licenseKey || "";
+    const hotkeyLabels = {
+      "ctrl+windows": ["Ctrl", "⊞ Win"],
+      "ctrl+alt": ["Ctrl", "Alt"],
+      "right alt": ["Right Alt"],
+      "ctrl+shift+space": ["Ctrl", "Shift", "Space"],
+      "f13": ["F13"],
+    };
+
+    function updatePreview(val) {
+      const preview = document.getElementById("hotkeyPreview");
+      const keys = hotkeyLabels[val] || [val];
+      preview.innerHTML = keys.map(k => `<span class="key-badge">${k}</span>`).join('<span style="color:var(--muted);padding:0 2px">+</span>');
     }
 
-    // Also handle push from main process
-    tw.onLoadConfig((config) => {
-      document.getElementById("hotkey").value = config.hotkey || "RAlt";
-      document.getElementById("model").value = config.model || "base";
-      document.getElementById("licenseKey").value = config.licenseKey || "";
+    document.getElementById("hotkey").addEventListener("change", (e) => {
+      updatePreview(e.target.value);
     });
 
-    // Listen for license activation result
+    async function loadConfig() {
+      let config;
+      try { config = await tw.getConfig(); }
+      catch (e) { config = { hotkey: "ctrl+windows", model: "base", licenseKey: "" }; }
+      document.getElementById("hotkey").value = config.hotkey || "ctrl+windows";
+      document.getElementById("model").value = config.model || "base";
+      document.getElementById("licenseKey").value = config.licenseKey || "";
+      updatePreview(config.hotkey || "ctrl+windows");
+    }
+
+    tw.onLoadConfig((config) => {
+      document.getElementById("hotkey").value = config.hotkey || "ctrl+windows";
+      document.getElementById("model").value = config.model || "base";
+      document.getElementById("licenseKey").value = config.licenseKey || "";
+      updatePreview(config.hotkey || "ctrl+windows");
+    });
+
     tw.onLicenseResult((result) => {
       const el = document.getElementById("licenseStatus");
       el.style.color = result.success ? "#6ee7b7" : "#f87171";
