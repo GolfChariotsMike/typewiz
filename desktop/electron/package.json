@@ -24,7 +24,7 @@
     },
     "extraResources": [
       {
-        "from": "../core",
+        "from": "bundled-core",
         "to": "core",
         "filter": [
           "**/*"
