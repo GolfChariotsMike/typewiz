@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TypeWiz Settings</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,47 +13,77 @@
     body {
       background: var(--bg); color: var(--text);
       font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 14px; padding: 28px 32px 24px; line-height: 1.5; user-select: none;
+      font-size: 14px; padding: 24px 28px 20px; line-height: 1.5; user-select: none;
     }
-    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
-    .logo { font-size: 26px; }
-    .header h1 { font-size: 20px; font-weight: 600; color: #a78bfa; }
-    .header .tagline { font-size: 12px; color: var(--muted); }
-    .section { margin-bottom: 20px; }
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .logo { font-size: 24px; }
+    .header h1 { font-size: 18px; font-weight: 600; color: #a78bfa; }
+    .header .tagline { font-size: 11px; color: var(--muted); }
+    .section { margin-bottom: 16px; }
     label {
-      display: block; font-size: 12px; font-weight: 500; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+      display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;
     }
-    select, input[type="text"] {
-      width: 100%; padding: 9px 12px; background: var(--input-bg);
+    select, input[type="text"], input[type="password"] {
+      width: 100%; padding: 8px 12px; background: var(--input-bg);
       border: 1px solid var(--border); border-radius: var(--radius);
-      color: var(--text); font-size: 14px; outline: none;
+      color: var(--text); font-size: 13px; outline: none;
       transition: border-color 0.15s; -webkit-appearance: none;
     }
     select:focus, input:focus { border-color: var(--accent); }
     select option { background: var(--input-bg); }
-    .hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
-    .license-row { display: flex; gap: 8px; }
-    .license-row input { flex: 1; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .hint a { color: var(--accent); cursor: pointer; }
+
+    /* Mode toggle */
+    .mode-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
+    .mode-btn {
+      flex: 1; padding: 8px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: var(--input-bg); color: var(--muted); transition: all 0.15s;
+      text-align: center;
+    }
+    .mode-btn.active {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+
+    /* Cloud badge */
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 1px 6px; border-radius: 4px; margin-left: 6px;
+      background: rgba(139,92,246,0.2); color: #a78bfa; vertical-align: middle;
+    }
+
+    /* Row layout */
+    .input-row { display: flex; gap: 8px; }
+    .input-row input { flex: 1; }
+
     .btn {
-      padding: 9px 18px; border-radius: var(--radius); font-size: 13px;
-      font-weight: 500; cursor: pointer; border: none; transition: background 0.15s, opacity 0.15s;
+      padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; cursor: pointer; border: none; transition: background 0.15s;
+      white-space: nowrap;
     }
     .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--border); }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { background: var(--accent-hover); }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-    .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
     .link-btn {
-      background: none; border: none; color: var(--accent); font-size: 13px;
+      background: none; border: none; color: var(--accent); font-size: 12px;
       cursor: pointer; text-decoration: underline; padding: 0;
     }
-    .status-msg { font-size: 12px; color: #6ee7b7; min-height: 18px; margin-top: 8px; }
-    .hotkey-preview { display: inline-flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+    .status-msg { font-size: 11px; min-height: 16px; margin-top: 6px; }
+
+    /* Local model section — hidden by default */
+    #localSection { display: none; }
+    #localSection.visible { display: block; }
+
+    .hotkey-preview { display: inline-flex; gap: 4px; margin-top: 6px; }
     .key-badge {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 4px; padding: 2px 8px; font-size: 12px;
+      border-radius: 4px; padding: 2px 8px; font-size: 11px;
       font-family: monospace; color: var(--text);
     }
   </style>
@@ -68,9 +97,46 @@
     </div>
   </div>
 
+  <!-- Transcription Mode -->
+  <div class="section">
+    <label>Transcription Mode</label>
+    <div class="mode-toggle">
+      <div class="mode-btn active" id="modeCloud" onclick="setMode('cloud')">
+        ☁️ Cloud <span class="badge">BEST ACCURACY</span>
+      </div>
+      <div class="mode-btn" id="modeLocal" onclick="setMode('local')">
+        💻 Local (offline)
+      </div>
+    </div>
+    <div class="hint" id="modeHint">Uses OpenAI Whisper API. Requires internet. ~$0.006/min of audio.</div>
+  </div>
+
+  <!-- Cloud: API Key -->
+  <div class="section" id="apiKeySection">
+    <label>OpenAI API Key</label>
+    <div class="input-row">
+      <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+      <button class="btn btn-secondary" id="toggleKeyBtn" onclick="toggleKeyVisibility()">Show</button>
+    </div>
+    <div class="hint">Get your key at <a onclick="openLink('https://platform.openai.com/api-keys')">platform.openai.com/api-keys</a></div>
+    <div class="status-msg" id="apiKeyStatus"></div>
+  </div>
+
+  <!-- Local: Model size -->
+  <div class="section" id="localSection">
+    <label>Local Model</label>
+    <select id="model">
+      <option value="tiny">Tiny (~75MB, fastest, lower accuracy)</option>
+      <option value="base">Base (~150MB, decent)</option>
+      <option value="small" selected>Small (~500MB, recommended — needs 2GB RAM)</option>
+      <option value="medium">Medium (~1.5GB, better — needs 4GB RAM)</option>
+    </select>
+    <div class="hint">Downloaded automatically on first use. Runs 100% on your device — no internet needed.</div>
+  </div>
+
   <!-- Hotkey -->
   <div class="section">
-    <label for="hotkey">Hold-to-Record Hotkey</label>
+    <label>Hold-to-Record Hotkey</label>
     <select id="hotkey">
       <option value="ctrl+windows">Ctrl + Win (default)</option>
       <option value="ctrl+alt">Ctrl + Alt</option>
@@ -78,13 +144,12 @@
       <option value="ctrl+shift+space">Ctrl + Shift + Space</option>
       <option value="f13">F13 (programmable key)</option>
     </select>
-    <div class="hint">Hold both keys to record. Release either key to transcribe.</div>
     <div class="hotkey-preview" id="hotkeyPreview"></div>
   </div>
 
   <!-- Language -->
   <div class="section">
-    <label for="language">Language</label>
+    <label>Language</label>
     <select id="language">
       <option value="en">English</option>
       <option value="auto">Auto-detect</option>
@@ -99,35 +164,17 @@
       <option value="hi">Hindi</option>
       <option value="it">Italian</option>
       <option value="nl">Dutch</option>
-      <option value="pl">Polish</option>
       <option value="ru">Russian</option>
-      <option value="sv">Swedish</option>
-      <option value="tr">Turkish</option>
-      <option value="vi">Vietnamese</option>
-      <option value="id">Indonesian</option>
       <option value="ms">Malay</option>
     </select>
-    <div class="hint">Auto-detect may reduce accuracy on short phrases. Use a specific language for best results.</div>
-  </div>
-
-  <!-- Model -->
-  <div class="section">
-    <label for="model">Whisper Model</label>
-    <select id="model">
-      <option value="tiny">Tiny — fastest (~75MB, lower accuracy)</option>
-      <option value="base">Base (~150MB, decent)</option>
-      <option value="small" selected>Small — recommended (~500MB, good accuracy)</option>
-      <option value="medium">Medium (~1.5GB, better accuracy, slow load)</option>
-    </select>
-    <div class="hint">Larger models are more accurate but use more RAM and take longer to load.</div>
   </div>
 
   <hr class="divider" />
 
   <!-- License -->
   <div class="section">
-    <label for="licenseKey">License Key</label>
-    <div class="license-row">
+    <label>License Key</label>
+    <div class="input-row">
       <input type="text" id="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
       <button class="btn btn-secondary" id="activateBtn">Activate</button>
     </div>
@@ -141,6 +188,27 @@
 
   <script>
     const tw = window.typewiz;
+    let currentMode = 'cloud';
+    let keyVisible = false;
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('modeCloud').className = 'mode-btn' + (mode === 'cloud' ? ' active' : '');
+      document.getElementById('modeLocal').className = 'mode-btn' + (mode === 'local' ? ' active' : '');
+      document.getElementById('apiKeySection').style.display = mode === 'cloud' ? 'block' : 'none';
+      document.getElementById('localSection').className = mode === 'local' ? 'section visible' : 'section';
+      document.getElementById('modeHint').textContent = mode === 'cloud'
+        ? 'Uses OpenAI Whisper API. Requires internet. ~$0.006/min of audio.'
+        : 'Runs entirely on your device. No internet needed. Slower and less accurate than cloud.';
+    }
+
+    function toggleKeyVisibility() {
+      keyVisible = !keyVisible;
+      document.getElementById('apiKey').type = keyVisible ? 'text' : 'password';
+      document.getElementById('toggleKeyBtn').textContent = keyVisible ? 'Hide' : 'Show';
+    }
+
+    function openLink(url) { tw.openAccount && tw.openAccount(); }
 
     const hotkeyLabels = {
       "ctrl+windows": ["Ctrl", "⊞ Win"],
@@ -151,19 +219,22 @@
     };
 
     function updatePreview(val) {
-      const preview = document.getElementById("hotkeyPreview");
       const keys = hotkeyLabels[val] || [val];
-      preview.innerHTML = keys.map(k => `<span class="key-badge">${k}</span>`).join('<span style="color:var(--muted);padding:0 2px">+</span>');
+      document.getElementById('hotkeyPreview').innerHTML = keys
+        .map(k => `<span class="key-badge">${k}</span>`)
+        .join('<span style="color:var(--muted);padding:0 2px">+</span>');
     }
 
-    document.getElementById("hotkey").addEventListener("change", (e) => updatePreview(e.target.value));
+    document.getElementById('hotkey').addEventListener('change', e => updatePreview(e.target.value));
 
     function applyConfig(config) {
-      document.getElementById("hotkey").value = config.hotkey || "ctrl+windows";
-      document.getElementById("language").value = config.language || "en";
-      document.getElementById("model").value = config.model || "base";
-      document.getElementById("licenseKey").value = config.licenseKey || "";
-      updatePreview(config.hotkey || "ctrl+windows");
+      setMode(config.mode || 'cloud');
+      document.getElementById('apiKey').value = config.apiKey || '';
+      document.getElementById('hotkey').value = config.hotkey || 'ctrl+windows';
+      document.getElementById('language').value = config.language || 'en';
+      document.getElementById('model').value = config.model || 'small';
+      document.getElementById('licenseKey').value = config.licenseKey || '';
+      updatePreview(config.hotkey || 'ctrl+windows');
     }
 
     async function loadConfig() {
@@ -174,26 +245,35 @@
     tw.onLoadConfig(applyConfig);
 
     tw.onLicenseResult((result) => {
-      const el = document.getElementById("licenseStatus");
-      el.style.color = result.success ? "#6ee7b7" : "#f87171";
+      const el = document.getElementById('licenseStatus');
+      el.style.color = result.success ? '#6ee7b7' : '#f87171';
       el.textContent = result.message;
     });
 
-    document.getElementById("saveBtn").addEventListener("click", () => {
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (currentMode === 'cloud' && !apiKey) {
+        const el = document.getElementById('apiKeyStatus');
+        el.style.color = '#f87171';
+        el.textContent = 'API key required for cloud mode.';
+        return;
+      }
       tw.saveSettings({
-        hotkey: document.getElementById("hotkey").value,
-        language: document.getElementById("language").value,
-        model: document.getElementById("model").value,
-        licenseKey: document.getElementById("licenseKey").value,
+        mode: currentMode,
+        apiKey,
+        hotkey: document.getElementById('hotkey').value,
+        language: document.getElementById('language').value,
+        model: document.getElementById('model').value,
+        licenseKey: document.getElementById('licenseKey').value,
       });
     });
 
-    document.getElementById("activateBtn").addEventListener("click", () => {
-      const key = document.getElementById("licenseKey").value.trim();
+    document.getElementById('activateBtn').addEventListener('click', () => {
+      const key = document.getElementById('licenseKey').value.trim();
       if (key) tw.activateLicense(key);
     });
 
-    document.getElementById("accountBtn").addEventListener("click", () => tw.openAccount());
+    document.getElementById('accountBtn').addEventListener('click', () => tw.openAccount());
 
     loadConfig();
   </script>
