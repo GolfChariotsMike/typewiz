@@ -27,13 +27,7 @@ jobs:
       - name: Compile Python core with PyInstaller
         working-directory: desktop/core
         run: |
-          pyinstaller --onefile --name typewiz-core --distpath ../electron/bundled-core \
-            --hidden-import requests \
-            --hidden-import requests.adapters \
-            --hidden-import urllib3 \
-            --hidden-import certifi \
-            --collect-all certifi \
-            main.py
+          pyinstaller --onefile --name typewiz-core --distpath ../electron/bundled-core --hidden-import requests --hidden-import requests.adapters --hidden-import urllib3 --hidden-import certifi --collect-all certifi main.py
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
