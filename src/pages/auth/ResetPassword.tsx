@@ -29,26 +29,26 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080810] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <span className="text-2xl">🎙️</span>
-            <span className="text-xl font-bold text-white">TypeWiz</span>
+            <span className="text-xl font-bold text-gray-900">TypeWiz</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white mb-2">Choose a new password</h1>
-          <p className="text-slate-400 text-sm">Make it strong</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Choose a new password</h1>
+          <p className="text-gray-500 text-sm">Make it strong</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
           {error && (
-            <div className="bg-red-900/30 border border-red-800/50 text-red-300 text-sm px-4 py-3 rounded-xl mb-4">
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
               {error}
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">New password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">New password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -57,32 +57,32 @@ export default function ResetPassword() {
                   required
                   minLength={8}
                   placeholder="Min. 8 characters"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-12 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-600 transition-colors"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-gray-400 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1.5">Confirm password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm password</label>
               <input
                 type="password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-600 transition-colors"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-gray-400 transition-colors"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition-colors"
+              className="w-full bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition-all hover:scale-105"
             >
               {loading ? 'Updating...' : 'Update password'}
             </button>
