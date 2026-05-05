@@ -66,12 +66,19 @@ class AudioRecorder:
         pcm_int16 = (audio_data * 32767).astype(np.int16)
 
         # Prepend 150ms of silence to compensate for mic stream warmup.
-        # The first ~100ms of audio is often missed as the stream initialises,
-        # which causes Whisper to miss the first word. Padding with silence
-        # gives Whisper correct timing context without affecting transcription.
         pad_samples = int(self.sample_rate * 0.15)
         silence_pad = np.zeros(pad_samples, dtype=np.int16)
         pcm_int16 = np.concatenate([silence_pad, pcm_int16.flatten()])
+
+        # Normalize audio volume — boost quiet recordings (e.g. whispers)
+        # so Whisper has enough signal to transcribe accurately.
+        # Target peak at 90% of max int16 range. Skip if already loud enough.
+        float_audio = pcm_int16.astype(np.float32)
+        peak = np.abs(float_audio).max()
+        if 0 < peak < 20000:  # quiet audio — boost it
+            gain = min(29000.0 / peak, 8.0)  # cap gain at 8x to avoid distortion
+            float_audio = np.clip(float_audio * gain, -32767, 32767)
+            pcm_int16 = float_audio.astype(np.int16)
 
         return _numpy_to_wav(pcm_int16, self.sample_rate, self.channels)
 
