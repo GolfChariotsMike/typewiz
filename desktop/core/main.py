@@ -43,9 +43,9 @@ def inject_text(text):
         except Exception:
             old = ""
         pyperclip.copy(text)
-        time.sleep(0.08)
+        time.sleep(0.04)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(0.12)
+        time.sleep(0.05)
         try:
             if old:
                 pyperclip.copy(old)
@@ -132,6 +132,15 @@ class HotkeyManager:
             time.sleep(POLL_INTERVAL)
 
 # ── Transcription ──────────────────────────────────────────────────────────
+# Persistent session for connection reuse (reduces TCP handshake latency)
+_session = None
+
+def get_session():
+    global _session
+    if _session is None:
+        _session = requests.Session()
+    return _session
+
 def transcribe_cloud(wav_bytes, api_key, language="en"):
     """Send audio to OpenAI Whisper API and return transcribed text."""
     lang_param = language if language and language != "auto" else None
@@ -140,7 +149,7 @@ def transcribe_cloud(wav_bytes, api_key, language="en"):
     if lang_param:
         data["language"] = lang_param
     headers = {"Authorization": f"Bearer {api_key}"}
-    resp = requests.post(
+    resp = get_session().post(
         "https://api.openai.com/v1/audio/transcriptions",
         headers=headers, files=files, data=data, timeout=30
     )
@@ -272,6 +281,14 @@ class TypeWizDaemon:
         self.ensure_ready()
         self.hotkey_mgr.set_hotkey("ctrl+windows")
         self.hotkey_mgr.start()
+        # Pre-warm HTTPS connection to OpenAI in background
+        threading.Thread(target=self._warmup_connection, daemon=True).start()
+
+    def _warmup_connection(self):
+        try:
+            get_session().head("https://api.openai.com", timeout=5)
+        except Exception:
+            pass
         while True:
             cmd = read_command()
             if cmd is None:
