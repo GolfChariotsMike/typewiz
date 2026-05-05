@@ -77,11 +77,8 @@ function handlePythonEvent(event) {
       trayModule && trayModule.setStatus("Ready");
       overlayModule && overlayModule.showReady();
       console.log("[TypeWiz] Python core ready.");
-      // Open settings on very first launch so user knows the app is running
-      if (store && store.get("firstLaunch", true)) {
-        store.set("firstLaunch", false);
-        setTimeout(() => settingsModule && settingsModule.openSettings(store, onSettingsSave), 500);
-      }
+      // Always open settings on startup so user knows the app is running
+      setTimeout(() => settingsModule && settingsModule.openSettings(store, onSettingsSave), 500);
       // Send saved config (hotkey + model) to Python on startup
       sendCommand({
         cmd: "set_config",
