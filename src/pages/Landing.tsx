@@ -373,10 +373,11 @@ export default function Landing() {
               </div>
               <div className="mb-6">
                 <h3 className="text-xl font-bold mb-1 text-white">Pro</h3>
-                <div className="flex items-end gap-1 mb-3">
-                  <span className="text-4xl font-black text-white">$12</span>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-black text-white">$19</span>
                   <span className="text-gray-400 mb-1">/month</span>
                 </div>
+                <p className="text-gray-400 text-sm mb-2">Or <a href="https://buy.stripe.com/aFaaEW9aafVr1HH9DTgQE0a" className="text-gray-300 underline underline-offset-2 hover:text-white">$190/year</a> — 2 months free</p>
                 <p className="text-gray-400 text-sm">For power users and professionals</p>
               </div>
               <ul className="space-y-3 mb-8">
@@ -395,12 +396,12 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/register"
+              <a
+                href="https://buy.stripe.com/5kQ3cu8667oVeut3fvgQE09"
                 className="block text-center bg-white hover:bg-gray-100 text-gray-900 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
               >
-                Start Pro — $12/mo
-              </Link>
+                Start Pro — $19/mo
+              </a>
             </div>
           </div>
         </div>
